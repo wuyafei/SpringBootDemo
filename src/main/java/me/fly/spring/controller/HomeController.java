@@ -6,6 +6,9 @@ package me.fly.spring.controller;
 
 import me.fly.spring.model.HelloRequest;
 import me.fly.spring.model.HelloResponse;
+import me.fly.spring.model.User;
+import me.fly.spring.service.TestCacheService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,5 +64,26 @@ public class HomeController {
         helloResponse.setNum(0);
         helloResponse.setTieredPrice(respMap);
         return helloResponse;
+    }
+
+    @Autowired
+    TestCacheService cacheService;
+
+    @RequestMapping("/tc")
+    @ResponseBody
+    public String putCache(){
+        User user1 = cacheService.findUser(1256254l,"alex","phil");
+        cacheService.clearUserCache(1256254l,"alex","phil");
+        User user2 = cacheService.findUser(1256254l,"alex","phil");
+        return "ok";
+    }
+
+    @RequestMapping("/tc2")
+    @ResponseBody
+    public String testCache(){
+        User user1 = cacheService.findUser2(1256l,"alex","phil");
+        cacheService.clearSessionCache(1256l,"alex","phil");
+        User user2 = cacheService.findUser2(1256l,"alex","phil");
+        return "ok";
     }
 }
