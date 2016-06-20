@@ -4,6 +4,7 @@ package me.fly.spring.controller;
  * Created by wuyafei on 16/4/7.
  */
 
+import me.fly.spring.config.Servers;
 import me.fly.spring.model.HelloRequest;
 import me.fly.spring.model.HelloResponse;
 import me.fly.spring.model.User;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +28,8 @@ public class HomeController {
     @Value("${application.message:Hello World}")
     private String message;
 
+    @Value("${lss.preset:yourpreset}")
+    private String preset;
 
     @RequestMapping("/welcome")
     public String welcome(Map<String, Object> model) {
@@ -69,6 +71,20 @@ public class HomeController {
     @Autowired
     TestCacheService cacheService;
 
+    @Autowired
+    Servers servers;
+
+    @RequestMapping("/servers")
+    public @ResponseBody String servers(){
+        StringBuilder sb = new StringBuilder();
+        for (String s: servers.getSessions()) {
+            sb.append(s);
+            sb.append("\n");
+        }
+        sb.append(preset);
+        return sb.toString();
+    }
+
     @RequestMapping("/tc")
     @ResponseBody
     public String putCache(){
@@ -82,7 +98,7 @@ public class HomeController {
     @ResponseBody
     public String testCache(){
         User user1 = cacheService.findUser2(1256l,"alex","phil");
-        cacheService.clearSessionCache(1256l,"alex","phil");
+        cacheService.clearSessionCache(1256l, "alex", "phil");
         User user2 = cacheService.findUser2(1256l,"alex","phil");
         return "ok";
     }
