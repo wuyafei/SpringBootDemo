@@ -4,6 +4,7 @@ package me.fly.spring.controller;
  * Created by wuyafei on 16/4/7.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.fly.spring.config.Servers;
 import me.fly.spring.model.HelloRequest;
 import me.fly.spring.model.HelloResponse;
@@ -11,16 +12,13 @@ import me.fly.spring.model.User;
 import me.fly.spring.service.TestCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.*;
 
 @Controller
 public class HomeController {
@@ -101,5 +99,34 @@ public class HomeController {
         cacheService.clearSessionCache(1256l, "alex", "phil");
         User user2 = cacheService.findUser2(1256l,"alex","phil");
         return "ok";
+    }
+
+    @Value("${migrate.session.path:classpath:migrate_sessions.json}")
+    private String strMigrateSessions;
+    private Set<String> migrateSessions;
+
+    @Autowired
+    private ApplicationContext context;
+
+    @PostConstruct
+    private void loadMigrateSessions() {
+        try {
+            migrateSessions = new HashSet<String>(new ObjectMapper()
+                    .readValue(context.getResource(strMigrateSessions).getInputStream(), List.class));
+        } catch (IOException e) {
+            throw new RuntimeException("load migrating sessions from file failed");
+        }
+    }
+
+    @RequestMapping("/migrate/{name:.+}")
+    @ResponseBody
+    public String migrate(@PathVariable String name){
+        for (String s : migrateSessions) {
+            System.out.println(s);
+        }
+        if (migrateSessions.contains(name))
+            return "Yes";
+        else
+            return "No";
     }
 }

@@ -4,3 +4,5 @@ lss:
     - adsfh22039u
     - goq902aslg0
   preset: mypreset
+
+migrate.session.path: classpath:migrate_sessions.json
