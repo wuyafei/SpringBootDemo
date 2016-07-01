@@ -13,6 +13,7 @@ import me.fly.spring.service.TestCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,9 +97,12 @@ public class HomeController {
     @ResponseBody
     public String testCache(){
         User user1 = cacheService.findUser2(1256l,"alex","phil");
-        cacheService.clearSessionCache(1256l, "alex", "phil");
         User user2 = cacheService.findUser2(1256l,"alex","phil");
-        return "ok";
+        if (user1 == user2) {
+            return "ok";
+        } else {
+            return "fail";
+        }
     }
 
     @Value("${migrate.session.path:classpath:migrate_sessions.json}")
@@ -128,5 +132,27 @@ public class HomeController {
             return "Yes";
         else
             return "No";
+    }
+
+    @Autowired
+    RedisTemplate<String, String> redisTemplate;
+
+    @RequestMapping("/testredis")
+    @ResponseBody
+    public String testredis(@RequestParam String key, @RequestParam String value) {
+        redisTemplate.opsForValue().set(key, value);
+        return redisTemplate.opsForValue().get(key);
+    }
+
+    @Autowired
+    RedisTemplate<String, Object> objectRedisTemplate;
+
+    @RequestMapping("/testredisobject")
+    @ResponseBody
+    public String testredisobject(@RequestParam String key) {
+        User one = new User(1939834l, "lebron", "james");
+        objectRedisTemplate.opsForValue().set(key, one);
+        User another = (User) objectRedisTemplate.opsForValue().get(key);
+        return another.getFirstName() + another.getLastName();
     }
 }
